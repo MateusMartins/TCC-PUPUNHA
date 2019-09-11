@@ -17,26 +17,42 @@ summary(solo)
 # Efetua a limpeza dos campos que contem '////'
 iguape_met_clean <- iguape_met %>% filter(temp_inst != '////' | precipitacao != '////')
 
-# Efetua limpeza dos registros acima de 2015
-suldoeste_met_clean <- suldoeste_met %>% filter(yr > 2015)
+# Efetua limpeza dos registros pelas cidades presentes no vale do ribeira
+suldoeste_met_clean <- suldoeste_met %>% filter(city == 'Pariquera-AÃ§u' 
+                                                | city == 'Barra do Turvo'
+                                                | city == 'Itariri'
+                                                | city == 'CananÃ©ia'
+                                                | city == 'Pedro de Toledo'
+                                                | city == 'Iporanga'
+                                                | city == 'Eldorado'
+                                                | city == 'Miracatu'
+                                                | city == 'Cajati'
+                                                | city == 'Sete Barras'
+                                                | city == 'JuquiÃ¡'
+                                                | city == 'Jacupiranga'
+                                                | city == 'Ilha Comprida'
+                                                | city == 'Registro'
+                                                | city == 'Iguape')
 
-suldoeste_met %>%
+summary(suldoeste_met_clean)
+
+# Quantidade de precipitacao por ano
+suldoeste_met_clean %>%
   group_by(yr) %>% 
   summarise(precipitacao = sum(prcp, na.rm = TRUE)) %>% 
   ggplot() +
   geom_bar(aes(x = yr, y = precipitacao), stat = "identity", color = "black", fill = "light blue")
 
-suldoeste_met %>%
-  group_by() %>% 
-  summarise(precipitacao = sum(prcp, na.rm = TRUE)) %>% 
+# máximo de radiacao por ano
+suldoeste_met_clean %>%
+  group_by(yr) %>% 
+  summarise(radiacao = max(gbrd, na.rm = TRUE)) %>% 
   ggplot() +
-  geom_bar(aes(x = yr, y = precipitacao), stat = "identity", color = "black", fill = "light blue")
+  geom_bar(aes(x = yr, y = radiacao), stat = "identity", color = "black", fill = "yellow")
 
-ggplot(suldoeste_met) + 
-  geom_histogram(aes(x = yr), color = "black", fill = "white")
-
-suldoeste_met %>%
-  mutate(yr = as.factor(yr)) %>%
-  summarise(precipitacao = sum(prcp, na.rm = TRUE)) %>% 
-  ggplot(aes(y = yr, x = precipitacao, fill = yr)) +
-  geom_density_ridges(na.rm = TRUE, show.legend = FALSE)
+# Media de umidade por ano
+suldoeste_met_clean %>%
+  group_by(yr) %>% 
+  summarise(umidade = mean(hmdy, na.rm = TRUE)) %>% 
+  ggplot() +
+  geom_bar(aes(x = yr, y = umidade), stat = "identity", color = "black", fill = "blue")
