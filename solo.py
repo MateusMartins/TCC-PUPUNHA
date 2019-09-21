@@ -17,6 +17,7 @@ df_solo = df_solo.withColumn('SB', (col('K') + col('Ca') + col('Mg'))) \
     .withColumn('CTC_efetiva', (col('SB') + col('Al'))) \
     .withColumn('CTC_total', (col('Ca') + col('Mg') + col('K') + col('H+Al'))) \
     .withColumn('V', (100*(col('SB')/col('CTC_total'))))
+df_solo.show(10, False)
 
 # Efetuando gravação do dataframe em csv
 print('SALVANDO DATAFRAME SOLO EM CSV')
