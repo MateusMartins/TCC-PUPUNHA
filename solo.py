@@ -7,7 +7,7 @@ spark = SparkSession.builder.appName('solo').config("spark.debug.maxToStringFiel
 
 # Efetua a leitura do csv de clima
 print('EFETUANDO LEITURA DO CSV DE CLIMA')
-df_solo = spark.read.csv('C:/projeto/datasets/Dataset-Solo.csv', header=True, sep=';')
+df_solo = spark.read.csv('C:/projeto/datasets/datasetSolo.csv', header=True, sep=';')
 df_solo.show(10, False)
 
 for name in df_solo.columns:
