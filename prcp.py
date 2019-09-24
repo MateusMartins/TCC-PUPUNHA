@@ -50,7 +50,15 @@ df_clima.show(10, False)
 # Efetua a leitura do csv de parametros de ra
 print('EFETUANDO LEITURA DO CSV DE PARAMETROS DE Ra')
 df_parametro_ra = spark.read.csv('C:/projeto/datasets/parametroRa.csv', header=True, sep=';')
-df_parametro_ra.show(10, False)
+
+list_teste = ['prcp','temp','tmax','tmin']
+for name in list_teste:
+    df_clima = df_clima.withColumn(name, df_clima[name].cast(DoubleType()))
+
+for name in df_parametro_ra.columns:
+    df_parametro_ra = df_parametro_ra.withColumn(name, df_parametro_ra[name].cast(DoubleType()))
+
+df_parametro_ra.printSchema()
 
 cidades = ['Pariquera-Açu', 'Barra do Turvo', 'Itariri', 'Cananéia', 'Pedro de Toledo', 'Iporanga', 'Eldorado', 'Miracatu', 'Cajati', 'Sete Barras', 'Juquiá', 'Jacupiranga', 'Ilha Comprida', 'Registro', 'Iguape']
 
@@ -61,6 +69,7 @@ df_clima = df_clima.filter(col('city').isin(cidades))
 # Remove os valores NULL ou '' dos campos de valor
 _ = ['prcp','stp','smax','smin','gbrd','temp','dewp','tmax','dmax','tmin','dmin','hmdy','hmax','hmin','wdsp','wdct','gust']
 print('EFETUANDO LIMPEZA DOS VALORES')
+
 for name in _:
     df_clima = df_clima.withColumn(name, expr('if({} is null or trim({}) = "", 0, {})'.format(name, name, name)))
 df_clima = df_clima.withColumn('city', expr("""CASE
