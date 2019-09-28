@@ -76,18 +76,23 @@ def set_class(df_in):
 
 # Efetua a leitura do csv de clima
 print('EFETUANDO LEITURA DO CSV DE SOLO')
-df_train = spark.read.csv('C:/projeto/datasets/solo_train.csv', header=True, sep=';')
+df_train = spark.read.csv('C:/projeto/datasets/solo.csv', header=True, sep=';')
 
+# Define o range da amostra
 for name in df_train.columns:
     df_train = set_range(df_train, name.lower())
 
+# Define o valor da amostra
 df_train = set_value(df_train)
+
+# define a classe da amostra de acordo com o valor
 df_train = set_class(df_train)
 
+# Dropa os campos desncessários para o processo
 drop_list = ['mean_value', 'Mg_value', 'P_value', 'Ca_value', 'N_value', 'K_value']
 for name in drop_list:
     df_train = df_train.drop(name)
 
 # Efetuando gravação do dataframe em csv
 print('SALVANDO DATAFRAME SOLO EM CSV')
-df_train.coalesce(1).write.save(path='C:/projeto/TCC-PUPUNHA/data/solo_train', format='csv', mode='overwrite', sep=';', header=True)
+df_train.coalesce(1).write.save(path='C:/projeto/TCC-PUPUNHA/data/solo_full', format='csv', mode='overwrite', sep=';', header=True)
