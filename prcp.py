@@ -44,11 +44,17 @@ def get_et0(df_in):
 
 # Efetua a leitura do csv de clima
 print('EFETUANDO LEITURA DO CSV DE CLIMA')
-df_clima = spark.read.csv('C:/projeto/datasets/datasetSaoPaulo.csv', header=True, sep=',')
+df_clima = spark.read.csv('C:/projeto/TCC-PUPUNHA/datasets/datasetSaoPaulo.csv', header=True, sep=',')
+print(df_clima.columns)
+print('QUANTIDADE DE REGISTROS: {}'.format(df_clima.count()))
+df_clima.printSchema()
 
 # Efetua a leitura do csv de parametros de ra
 print('EFETUANDO LEITURA DO CSV DE PARAMETROS DE Ra')
-df_parametro_ra = spark.read.csv('C:/projeto/datasets/parametroRa.csv', header=True, sep=';')
+df_parametro_ra = spark.read.csv('C:/projeto/TCC-PUPUNHA/datasets/parametroRa.csv', header=True, sep=';')
+print(df_parametro_ra.columns)
+print('QUANTIDADE DE REGISTROS: {}'.format(df_parametro_ra.count()))
+df_parametro_ra.printSchema()
 
 fields_list = ['prcp','temp','tmax','tmin']
 print('ALTERANDO AS VARIAVEIS {} DO DATAFRAME DF_CLIMA PARA DOUBLE'.format(fields_list))
@@ -59,19 +65,62 @@ print('ALTERANDO AS VARIAVEIS {} DO DATAFRAME DF_PARAMETRO_RA PARA DOUBLE'.forma
 for name in df_parametro_ra.columns:
     df_parametro_ra = df_parametro_ra.withColumn(name, df_parametro_ra[name].cast(DoubleType()))
 
-cidades_list = ['Pariquera-Açu', 'Barra do Turvo', 'Itariri', 'Cananéia', 'Pedro de Toledo', 'Iporanga', 'Eldorado', 'Miracatu', 'Cajati', 'Sete Barras', 'Juquiá', 'Jacupiranga', 'Ilha Comprida', 'Registro', 'Iguape']
+cidades_list = ['Pariquera-Açu', 'Barra do Turvo', 'Itariri', 
+'Cananéia', 'Pedro de Toledo', 'Iporanga', 
+'Eldorado', 'Miracatu', 'Cajati',
+'Sete Barras', 'Juquiá', 'Jacupiranga', 
+'Ilha Comprida', 'Registro', 'Iguape']
 # seleciona as cidades presentes na lista 'cidades'
 print('SELECIONANDO CIDADES PRESENTES NO VALE DO RIBEIRA')
 print(cidades_list)
 df_clima = df_clima.filter(col('city').isin(cidades_list))
 
 print('EFETUANDO LIMPEZA DOS VALORES DO DF_CLIMA')
+df_clima_new = df_clima.where('''
+                            (prcp is not null AND trim('prcp') != "") AND
+                            (stp is not null AND trim('stp') != "") AND
+                            (smax is not null AND trim('smax') != "") AND
+                            (smin is not null AND trim('smin') != "") AND
+                            (gbrd is not null AND trim('gbrd') != "") AND
+                            (temp is not null AND trim('temp') != "") AND
+                            (dewp is not null AND trim('dewp') != "") AND
+                            (tmax is not null AND trim('tmax') != "") AND
+                            (dmax is not null AND trim('dmax') != "") AND
+                            (tmin is not null AND trim('tmin') != "") AND
+                            (dmin is not null AND trim('dmin') != "") AND
+                            (hmdy is not null AND trim('hmdy') != "") AND
+                            (hmax is not null AND trim('hmax') != "") AND
+                            (hmin is not null AND trim('hmin') != "") AND
+                            (wdsp is not null AND trim('wdsp') != "") AND
+                            (wdct is not null AND trim('wdct') != "") AND
+                            (gust is not null AND trim('gust') != "")
+                        ''')
+
+print(df_clima_new.count())
+print(df_clima.count())
+
 
 # Remove os valores NULL ou '' dos campos de valor
-clima_list = ['prcp','stp','smax','smin','gbrd','temp','dewp','tmax','dmax','tmin','dmin','hmdy','hmax','hmin','wdsp','wdct','gust']
-print('SUBSTITUINDO VALORES NULOS OU VAZIOS POR 0 NOS CAMPOS A SEGUIR: {}'.format(clima_list))
-for name in clima_list:
-    df_clima = df_clima.withColumn(name, expr('if({} is null or trim({}) = "", 0, {})'.format(name, name, name)))
+
+df_clima_agg = df_clima.groupby('city','yr').agg(
+        _mean('prcp').alias('prcp_mean'),
+        _mean('stp').alias('stp_mean'),
+        _mean('smax').alias('smax_mean'),
+        _mean('smin').alias('smin_mean'),
+        _mean('gbrd').alias('gbrd_mean'),
+        _mean('temp').alias('temp_mean'),
+        _mean('dewp').alias('dewp_mean'),
+        _mean('tmax').alias('tmax_mean'),
+        _mean('dmax').alias('dmax_mean'),
+        _mean('tmin').alias('tmin_mean'),
+        _mean('dmin').alias('dmin_mean'),
+        _mean('hmdy').alias('hmdy_mean'),
+        _mean('hmax').alias('hmax_mean'),
+        _mean('hmin').alias('hmin_mean'),
+        _mean('wdsp').alias('wdsp_mean'),
+        _mean('wdct').alias('wdct_mean'),
+        _mean('gust').alias('gust_mean')
+        ).withColumnRenamed('city','city_mean').withColumnRenamed('yr','yr_mean')
 
 print('REMOVENDO CARACTERES ESPECIAIS DAS CIDADES')
 df_clima = df_clima.withColumn('city', expr("""CASE
